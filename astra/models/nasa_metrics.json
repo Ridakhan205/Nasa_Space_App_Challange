@@ -1,0 +1,200 @@
+{
+  "source": "NASA Flight Crew Physiological Data for Crew State Monitoring (data.nasa.gov)",
+  "task": "baseline vs elevated cognitive load (startle / channelized / diverted attention)",
+  "validation": "leave-one-subject-out",
+  "subjects": [
+    "10",
+    "11",
+    "12",
+    "5",
+    "6",
+    "9"
+  ],
+  "windows": 6072,
+  "loaded_windows": 1180,
+  "n_features": 36,
+  "features": [
+    "heart_rate",
+    "rmssd_ms",
+    "sdnn_ms",
+    "resp_rate",
+    "gsr_mean",
+    "gsr_slope",
+    "fz_theta",
+    "fz_alpha",
+    "fz_beta",
+    "cz_theta",
+    "cz_alpha",
+    "cz_beta",
+    "pz_theta",
+    "pz_alpha",
+    "pz_beta",
+    "o1_theta",
+    "o1_alpha",
+    "o1_beta",
+    "f3_theta",
+    "f3_alpha",
+    "f3_beta",
+    "f4_theta",
+    "f4_alpha",
+    "f4_beta",
+    "p3_theta",
+    "p3_alpha",
+    "p3_beta",
+    "p4_theta",
+    "p4_alpha",
+    "p4_beta",
+    "heart_rate_r3",
+    "rmssd_ms_r3",
+    "sdnn_ms_r3",
+    "resp_rate_r3",
+    "gsr_mean_r3",
+    "gsr_slope_r3"
+  ],
+  "best_model": "random_forest",
+  "results": {
+    "random_forest": {
+      "model": "random_forest",
+      "auc": 0.626,
+      "threshold": 0.32,
+      "recall": 0.54,
+      "precision": 0.269,
+      "f1": 0.359,
+      "confusion_matrix": {
+        "tn": 3160,
+        "fp": 1732,
+        "fn": 543,
+        "tp": 637
+      },
+      "per_subject_auc": [
+        {
+          "subject": "5",
+          "windows": 896,
+          "auc": 0.582
+        },
+        {
+          "subject": "6",
+          "windows": 963,
+          "auc": 0.522
+        },
+        {
+          "subject": "9",
+          "windows": 1177,
+          "auc": 0.729
+        },
+        {
+          "subject": "10",
+          "windows": 1176,
+          "auc": 0.648
+        },
+        {
+          "subject": "11",
+          "windows": 930,
+          "auc": 0.585
+        },
+        {
+          "subject": "12",
+          "windows": 930,
+          "auc": 0.692
+        }
+      ]
+    },
+    "gradient_boosting": {
+      "model": "gradient_boosting",
+      "auc": 0.607,
+      "threshold": 0.16,
+      "recall": 0.553,
+      "precision": 0.256,
+      "f1": 0.35,
+      "confusion_matrix": {
+        "tn": 2990,
+        "fp": 1902,
+        "fn": 527,
+        "tp": 653
+      },
+      "per_subject_auc": [
+        {
+          "subject": "5",
+          "windows": 896,
+          "auc": 0.526
+        },
+        {
+          "subject": "6",
+          "windows": 963,
+          "auc": 0.556
+        },
+        {
+          "subject": "9",
+          "windows": 1177,
+          "auc": 0.727
+        },
+        {
+          "subject": "10",
+          "windows": 1176,
+          "auc": 0.567
+        },
+        {
+          "subject": "11",
+          "windows": 930,
+          "auc": 0.545
+        },
+        {
+          "subject": "12",
+          "windows": 930,
+          "auc": 0.727
+        }
+      ]
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "gsr_mean",
+      "importance": 0.0583
+    },
+    {
+      "feature": "gsr_mean_r3",
+      "importance": 0.0567
+    },
+    {
+      "feature": "pz_alpha",
+      "importance": 0.0562
+    },
+    {
+      "feature": "pz_theta",
+      "importance": 0.04
+    },
+    {
+      "feature": "heart_rate_r3",
+      "importance": 0.0372
+    },
+    {
+      "feature": "f3_alpha",
+      "importance": 0.0369
+    },
+    {
+      "feature": "fz_alpha",
+      "importance": 0.0365
+    },
+    {
+      "feature": "pz_beta",
+      "importance": 0.0359
+    },
+    {
+      "feature": "fz_beta",
+      "importance": 0.0357
+    },
+    {
+      "feature": "f3_beta",
+      "importance": 0.0334
+    },
+    {
+      "feature": "o1_theta",
+      "importance": 0.0324
+    },
+    {
+      "feature": "p3_theta",
+      "importance": 0.031
+    }
+  ],
+  "saved_bundle": "models/nasa_crew_state.joblib"
+}

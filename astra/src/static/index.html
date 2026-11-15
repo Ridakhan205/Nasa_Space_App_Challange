@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ASTRA — Crew Cognitive State Monitoring</title>
+<style>
+  :root {
+    --bg: #060a12;
+    --panel: #0d141f;
+    --panel-2: #111a29;
+    --line: #1c2839;
+    --text: #e8eefb;
+    --muted: #8ba0bf;
+    --ok: #2fbf71;
+    --warn: #f5b83d;
+    --crit: #ef4b5b;
+    --accent: #4c8dff;
+    --violet: #9d7bff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(1100px 520px at 12% -10%, #122036 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  a { color: var(--accent); }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; padding: 18px 28px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: rgba(6,10,18,.92); backdrop-filter: blur(8px); z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center;
+    background: linear-gradient(140deg, #1d3a68, #123252); border: 1px solid #27476f;
+    font-weight: 800; letter-spacing: .5px; font-size: 13px; color: #9dc4ff;
+  }
+  .brand h1 { margin: 0; font-size: 18px; letter-spacing: .4px; }
+  .brand p { margin: 3px 0 0; font-size: 11.5px; color: var(--muted); letter-spacing: .04em; }
+  .topright { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 7px 13px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap;
+  }
+  .pill.baseline { color: var(--ok); background: rgba(47,191,113,.11); border-color: rgba(47,191,113,.35); }
+  .pill.loaded { color: var(--crit); background: rgba(239,75,91,.12); border-color: rgba(239,75,91,.4); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 11px; color: var(--muted); border: 1px solid var(--line);
+    background: var(--panel); padding: 6px 10px; border-radius: 8px;
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+
+  /* ---------- layout ---------- */
+  main { padding: 22px 28px 48px; display: grid; gap: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+  .card h2 {
+    margin: 0; padding: 15px 18px 12px; font-size: 12px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .card .body { padding: 16px 18px; }
+
+  /* ---------- kpis ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi { padding: 16px 18px; }
+  .kpi .label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 8px; line-height: 1; }
+  .kpi .sub { font-size: 11.5px; color: var(--muted); margin-top: 7px; }
+  .kpi.crit .value { color: var(--crit); }
+  .kpi.ok .value { color: var(--ok); }
+
+  /* ---------- controls ---------- */
+  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; }
+  select, button, input[type=file] { font: inherit; color: var(--text); }
+  select {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 11px; min-width: 190px;
+  }
+  button {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 15px; cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  button:hover { border-color: #2d4160; }
+  button.primary { background: linear-gradient(180deg, #2a5da8, #1d4479); border-color: #35659f; }
+  button.ghost { background: transparent; color: var(--muted); }
+  .progress { flex: 1; min-width: 140px; height: 5px; border-radius: 4px; background: #162033; overflow: hidden; }
+  .progress > i { display: block; height: 100%; background: var(--accent); transition: width .12s linear; }
+  .counter { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ---------- charts ---------- */
+  svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+  /* ---------- alerts ---------- */
+  .alerts { display: flex; flex-direction: column; gap: 10px; max-height: 330px; overflow-y: auto; }
+  .alert {
+    border-left: 3px solid var(--crit); background: #131c2b; border-radius: 9px; padding: 11px 13px;
+  }
+  .alert .t { font-size: 12.5px; font-weight: 650; }
+  .alert .d { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .empty { color: var(--muted); font-size: 12.5px; padding: 4px 0; }
+
+  /* ---------- table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left; font-weight: 600; color: var(--muted); font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid #151f2f; font-variant-numeric: tabular-nums; }
+  tr.loaded td { background: rgba(239,75,91,.05); }
+
+  /* ---------- upload ---------- */
+  .upload { display: flex; flex-direction: column; gap: 14px; }
+  .drop {
+    border: 1.5px dashed #26374f; border-radius: 12px; padding: 22px; text-align: center;
+    color: var(--muted); font-size: 12.5px; transition: border-color .15s, background .15s; cursor: pointer;
+  }
+  .drop.hot { border-color: var(--accent); background: rgba(76,141,255,.06); }
+  .upload-summary { display: flex; gap: 22px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .upload-summary b { color: var(--text); font-size: 15px; display: block; margin-bottom: 2px; }
+  .error { color: var(--crit); font-size: 12.5px; line-height: 1.5; }
+
+  footer { padding: 0 28px 34px; color: var(--muted); font-size: 11.5px; line-height: 1.7; }
+  footer b { color: #c3d2ea; }
+
+  @media (max-width: 1050px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    main { padding: 18px; }
+    .topbar { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">A</div>
+    <div>
+      <h1>ASTRA</h1>
+      <p>AI-Driven Crew Cognitive State Monitoring</p>
+    </div>
+  </div>
+  <div class="topright">
+    <div class="chips" id="modelChips"></div>
+    <div class="pill baseline" id="statusPill">Loading…</div>
+  </div>
+</div>
+
+<main>
+  <section class="kpis">
+    <div class="card kpi" id="kpiState">
+      <div class="label">Cognitive state</div>
+      <div class="value">—</div>
+      <div class="sub">model output for current window</div>
+    </div>
+    <div class="card kpi" id="kpiRisk">
+      <div class="label">Load probability</div>
+      <div class="value">—</div>
+      <div class="sub" id="kpiRiskSub">threshold —</div>
+    </div>
+    <div class="card kpi" id="kpiWindows">
+      <div class="label">Windows analysed</div>
+      <div class="value">—</div>
+      <div class="sub">30 s windows, 5 s step</div>
+    </div>
+    <div class="card kpi" id="kpiAlerts">
+      <div class="label">Elevated-load windows</div>
+      <div class="value">—</div>
+      <div class="sub">at or above threshold</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Monitoring session</h2>
+    <div class="controls">
+      <select id="subjectSelect" aria-label="Crew member"></select>
+      <button class="primary" id="playBtn">▶ Start monitoring</button>
+      <button class="ghost" id="resetBtn">Reset</button>
+      <div class="progress"><i id="progressBar" style="width:0%"></i></div>
+      <span class="counter" id="counter">0 / 0</span>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Elevated-load probability <span class="counter" id="riskNow"></span></h2>
+      <div class="body">
+        <div id="riskChart"></div>
+        <div class="legend">
+          <span><i style="background:var(--crit)"></i>load probability</span>
+          <span><i style="background:var(--warn)"></i>alert threshold</span>
+          <span><i style="background:var(--accent)"></i>alert episodes</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Early warning</h2>
+      <div class="body alerts" id="alertList">
+        <div class="empty">No elevated-load episodes yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Cardiovascular trend</h2>
+      <div class="body">
+        <div id="vitalsChart"></div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>heart rate (bpm)</span>
+          <span><i style="background:var(--ok)"></i>HRV · RMSSD (ms)</span>
+          <span><i style="background:var(--violet)"></i>respiration (breaths/min)</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Physiological snapshot</h2>
+      <div class="body">
+        <div class="kpis" style="grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div class="kpi" style="padding:10px 0;"><div class="label">Heart rate</div><div class="value" id="snapHr" style="font-size:20px">—</div></div>
+          <div class="kpi" style="padding:10px 0;"><div class="label">RMSSD</div><div class="value" id="snapRmssd" style="font-size:20px">—</div></div>
+          <div class="kpi" style="padding:10px 0;"><div class="label">Respiration</div><div class="value" id="snapResp" style="font-size:20px">—</div></div>
+          <div class="kpi" style="padding:10px 0;"><div class="label">Skin conductance</div><div class="value" id="snapGsr" style="font-size:20px">—</div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>EEG band power <span class="counter">relative power, averaged across 8 channels</span></h2>
+    <div class="body">
+      <div id="eegChart"></div>
+      <div class="legend">
+        <span><i style="background:var(--violet)"></i>theta 4–8 Hz</span>
+        <span><i style="background:var(--accent)"></i>alpha 8–13 Hz</span>
+        <span><i style="background:var(--warn)"></i>beta 13–30 Hz</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Prediction history</h2>
+      <div class="body" style="padding-top:6px; max-height:360px; overflow:auto;">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Session</th><th>Time (s)</th><th>HR</th><th>RMSSD</th><th>Load risk</th><th>State</th></tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Data upload &amp; analysis</h2>
+      <div class="body upload">
+        <div class="drop" id="dropZone">
+          Drop a CSV of physiological features here, or click to choose a file.<br />
+          <span style="font-size:11.5px;">Required: the 30 feature columns produced by the feature extractor (heart rate, HRV, respiration, GSR, EEG band powers).</span>
+        </div>
+        <input type="file" id="fileInput" accept=".csv" style="display:none" />
+        <div id="uploadResult"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <b>Research prototype — decision support only.</b> ASTRA estimates cognitive load from
+  physiological signals. It is not a medical or psychological diagnostic system and does not
+  detect cardiovascular disease or orthostatic intolerance. Model trained on the NASA
+  <i>Flight Crew Physiological Data for Crew State Monitoring</i> dataset (6 pilots); the
+  recordings are simulator and benchmark sessions, not spaceflight.
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
