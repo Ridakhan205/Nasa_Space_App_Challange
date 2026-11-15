@@ -212,13 +212,13 @@ astra/
 
 ## Team
 
-**Team Adromeda** — Universal Local Event · NASA Space Apps Challenge 2026
-Member	Role	Country
-Emanuel William	ML and signal processing	Tanzania
-Rida khan	Backend and API	pakistan
-Emanuel dismas	Frontend and design	Tanzania
-Sana akram	Research and presentation	Bahrain
-Benjamini mashimba	Fullstack developer	Tanzania
+| Member | Role | Country |
+| --- | --- | --- |
+| Emanuel William | ML and signal processing | Tanzania |
+| Rida Khan | Backend and API | Pakistan |
+| Emanuel dismas | Frontend and design | Tanzania |
+| Sana Akram | Research and presentation | Bahrain |
+| Benjamini mashimba | Research and presentation | Tanzania |
 
 ---
 
